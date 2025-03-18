@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-setuptools \
     python3-pip \
     wget \
-    git 
+    git
 
 RUN pip3 install paho-mqtt typing-extensions
 
