@@ -1,19 +1,25 @@
 version: '3.7'
 services:
   metermon-ha:  # Changed container and service name
-    image: <YOUR_DOCKERHUB_USERNAME>/metermon-ha:latest  # Use your Docker Hub username
+    image: <YOUR_DOCKERHUB_USERNAME>/metermon-ha:latest  #  <-- USE YOUR IMAGE HERE
     container_name: metermon-ha  # Changed container name
     environment:
-      - MQTT_BROKER_HOST=127.0.0.1  #  Your MQTT broker IP
-      - MQTT_BROKER_PORT=1883
-      - MQTT_CLIENT_ID=metermon-ha
-      - MQTT_USERNAME=metermon       #  Your MQTT username (if needed)
-      - MQTT_PASSWORD=<PASSWORD>      #  Your MQTT password (if needed, use secrets)
-      - MQTT_TOPIC_PREFIX=metermon-ha  #  Consistent with the script
-      - RTL_TCP_SERVER=127.0.0.1:1234 # Your rtlamr instance
-      - RTLAMR_MSGTYPE=all
-      #- RTLAMR_FILTERID=             # Optional meter ID filter
-      - RTLAMR_UNIQUE=true
-      - METERMON_ELECTRIC_DIVISOR=100.0
-      - METERMON_WATER_DIVISOR=10.0
+      - MQTT_BROKER_HOST=10.1.1.10  #  <-- CHANGE THIS.  This was a placeholder!
+      - MQTT_BROKER_PORT=1883                #  <-- Change if necessary
+      - MQTT_CLIENT_ID=metermon-ha          #  Change if you have conflicts
+      - MQTT_USERNAME=metermon       #  <-- CHANGE THIS (if needed)
+      - MQTT_PASSWORD=<PASSWORD>      #  <-- CHANGE THIS (if needed, and use secrets!)
+      - MQTT_TOPIC_PREFIX=metermon-ha  #  Consistent with the script.
+      - RTL_TCP_SERVER=10.1.30.138:1234 #  <-- CHANGE THIS
+      - RTLAMR_MSGTYPE=all                #  Customize as needed
+      #- RTLAMR_FILTERID=                   # Optional: Filter by meter ID
+      #- RTLAMR_SYMBOLLENGTH=72    # Optional: for performance tuning
+      - RTLAMR_UNIQUE=true          #  Recommended
+      #- METERMON_ELECTRIC_DIVISOR=100.0   # Keep if you need it.
+      - METERMON_WATER_DIVISOR=10.0        # Keep if you need it.
     restart: unless-stopped
+    # Remove depends_on and devices as they are not needed in your setup
+    # depends_on:
+    #  - rtl_tcp  <- Removed.
+    # devices:
+    # - /dev/bus/usb:/dev/bus/usb <- Removed
