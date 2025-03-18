@@ -2,31 +2,33 @@ version: '3.7'
 services:
 
   rtl_tcp:
-    image: librtlsdr
+    image: librtlsdr  # Assuming you have a local image named this
     container_name: rtl_tcp
     devices:
       - /dev/bus/usb:/dev/bus/usb
     restart: unless-stopped
     command: rtl_tcp -a 0.0.0.0
 
-  metermon:
-    image: seanauff/metermon:latest
-    container_name: metermon
-    depends_on: rtl_tcp
+  metermon:  #  <- Change this to metermon-ha (or your chosen name)
+    image: pentafive/metermon-ha:latest  #  <- Use your Docker Hub username/image name
+    container_name: metermon-ha  # <- And update the container name here too.
+    depends_on:
+      - rtl_tcp
     environment:
-      - MQTT_BROKER_HOST=127.0.0.1
+      - MQTT_BROKER_HOST=127.0.0.1   # Or your broker's IP
       - MQTT_BROKER_PORT=1883
-      - MQTT_CLIENT_ID=metermon
-      #- MQTT_USERNAME=user
-      #- MQTT_PASSWORD=pass
-      - MQTT_TOPIC_PREFIX=metermon
+      - MQTT_CLIENT_ID=metermon-ha  # Good practice to change this
+      # - MQTT_USERNAME=user        # Optional, if you use authentication
+      # - MQTT_PASSWORD=pass        # Optional, if you use authentication
+      - MQTT_TOPIC_PREFIX=metermon    # Keep this!  Used for availability topic.
       - RTL_TCP_SERVER=rtl_tcp:1234
       - RTLAMR_MSGTYPE=all
-      #- RTLAMR_FILTERID=
-      #- RTLAMR_SYMBOLLENGTH=72
+      # - RTLAMR_FILTERID=           # Optional meter ID filtering
+      # - RTLAMR_SYMBOLLENGTH=72    # Optional, for performance tuning
       - RTLAMR_UNIQUE=true
-      - METERMON_SEND_RAW=false
-      - METERMON_SEND_BY_ID=false
-      #- METERMON_ELECTRIC_DIVISOR=100.0
-      #- METERMON_WATER_DIVISOR=10.0
+      # REMOVE THESE:
+      #- METERMON_SEND_RAW=false     # No longer needed
+      #- METERMON_SEND_BY_ID=false  # No longer needed
+      #- METERMON_ELECTRIC_DIVISOR=100.0   # Keep these if needed
+      #- METERMON_WATER_DIVISOR=10.0        # Keep these if needed
     restart: unless-stopped
