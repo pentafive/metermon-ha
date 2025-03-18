@@ -188,7 +188,7 @@ while True:
                 "name": f"{meter_id} {meter_type.capitalize()} Consumption",
                 "state_topic": f"homeassistant/sensor/metermon_{meter_id}/{meter_type}_consumption/state",
                 "unit_of_measurement": msg['Unit'],
-                "unique_id": f"metermon_{meter_id}_{meter_type}_consumption", # CORRECTED ID
+                "unique_id": f"metermon_{meter_id}_{meter_type}_consumption",
                 "device": {
                     "identifiers": [f"metermon_{meter_id}"],
                     "name": f"Metermon {meter_id}",
@@ -197,7 +197,7 @@ while True:
                 },
                 "state_class": "total_increasing",
                 "device_class": msg['Type'].lower() if msg['Type'].lower() in ['water', 'gas', 'electric'] else None,
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",  # Uses metermon-ha
                 "payload_available": "Online",
                 "payload_not_available": "Offline"
             })
@@ -207,9 +207,9 @@ while True:
             leak_config_topic = f"homeassistant/binary_sensor/metermon_{meter_id}/leak/config"
             leak_config_payload = json.dumps({
                 "name": f"{meter_id} Leak",
-                "state_topic": f"homeassistant/sensor/metermon_{meter_id}/{meter_type}_consumption/state",
+                "state_topic": f"homeassistant/binary_sensor/metermon_{meter_id}/leak/state", #  <-- CORRECTED!
                 "value_template": "{{ 'ON' if value_json.leak_now != 'None' else 'OFF' }}",
-                "unique_id": f"metermon_{meter_id}_leak", # CORRECTED ID
+                "unique_id": f"metermon_{meter_id}_leak",
                 "device": {
                     "identifiers": [f"metermon_{meter_id}"],
                     "name": f"Metermon {meter_id}",
@@ -217,7 +217,7 @@ while True:
                     "manufacturer": "Metermon"
                 },
                 "device_class": "problem",
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",  # Uses metermon-ha
                 "payload_available": "Online",
                 "payload_not_available": "Offline"
             })
@@ -229,8 +229,8 @@ while True:
                 "name": f"Metermon {meter_id} {meter_type.capitalize()} Config",
                 "state_topic": f"homeassistant/binary_sensor/metermon_{meter_id}/{meter_type}_consumption_config/state",
                 "value_template": "{{ 'ON' }}",
-                "unique_id": f"metermon_{meter_id}_{meter_type}_consumption_config", # CORRECTED ID
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
+                "unique_id": f"metermon_{meter_id}_{meter_type}_consumption_config",
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status", # Uses metermon-ha
                 "payload_available": "Online",
                 "payload_not_available": "Offline",
                 "device_class": "connectivity"
@@ -248,7 +248,7 @@ while True:
         client.publish(consumption_state_topic, payload=str(msg['Consumption']), retain=False) # Just the value!
 
         # --- Publish State Message for Leak Sensor ---
-        leak_state_topic = f"homeassistant/sensor/metermon_{meter_id}/{meter_type}_consumption/state"  # Same topic!
+        leak_state_topic = f"homeassistant/binary_sensor/metermon_{meter_id}/leak/state"  #  <-- CORRECTED!
         leak_state_payload = json.dumps({
             "consumption": msg['Consumption'],
             "leak_now": msg.get("LeakNow", "None")  # Use .get() for safety
