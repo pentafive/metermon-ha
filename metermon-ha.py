@@ -9,7 +9,7 @@ import paho.mqtt.client as mqtt
 # read in needed env variables
 MQTT_BROKER_HOST  = os.getenv('MQTT_BROKER_HOST',"127.0.0.1")
 MQTT_BROKER_PORT  = int(os.getenv('MQTT_BROKER_PORT',1883))
-MQTT_CLIENT_ID    = os.getenv('MQTT_CLIENT_ID',"metermon-ha") # Use -ha client ID
+MQTT_CLIENT_ID    = os.getenv('MQTT_CLIENT_ID',"metermon-ha")  # Use -ha client ID
 MQTT_USERNAME      = os.getenv('MQTT_USERNAME',"")
 MQTT_PASSWORD      = os.getenv('MQTT_PASSWORD',"")
 MQTT_TOPIC_PREFIX = os.getenv('MQTT_TOPIC_PREFIX',"metermon-ha")  # Use -ha prefix
@@ -188,7 +188,7 @@ while True:
                 "name": f"{meter_id} {meter_type.capitalize()} Consumption",
                 "state_topic": f"homeassistant/sensor/metermon_{meter_id}/{meter_type}_consumption/state",
                 "unit_of_measurement": msg['Unit'],
-                "unique_id": f"metermon_{meter_id}_{meter_type}_consumption",
+                "unique_id": f"metermon_{meter_id}_{meter_type}_consumption", # CORRECTED ID
                 "device": {
                     "identifiers": [f"metermon_{meter_id}"],
                     "name": f"Metermon {meter_id}",
@@ -197,7 +197,7 @@ while True:
                 },
                 "state_class": "total_increasing",
                 "device_class": msg['Type'].lower() if msg['Type'].lower() in ['water', 'gas', 'electric'] else None,
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",  # Uses metermon-ha
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
                 "payload_available": "Online",
                 "payload_not_available": "Offline"
             })
@@ -209,7 +209,7 @@ while True:
                 "name": f"{meter_id} Leak",
                 "state_topic": f"homeassistant/sensor/metermon_{meter_id}/{meter_type}_consumption/state",
                 "value_template": "{{ 'ON' if value_json.leak_now != 'None' else 'OFF' }}",
-                "unique_id": f"metermon_{meter_id}_leak",
+                "unique_id": f"metermon_{meter_id}_leak", # CORRECTED ID
                 "device": {
                     "identifiers": [f"metermon_{meter_id}"],
                     "name": f"Metermon {meter_id}",
@@ -217,7 +217,7 @@ while True:
                     "manufacturer": "Metermon"
                 },
                 "device_class": "problem",
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",  # Uses metermon-ha
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
                 "payload_available": "Online",
                 "payload_not_available": "Offline"
             })
@@ -229,8 +229,8 @@ while True:
                 "name": f"Metermon {meter_id} {meter_type.capitalize()} Config",
                 "state_topic": f"homeassistant/binary_sensor/metermon_{meter_id}/{meter_type}_consumption_config/state",
                 "value_template": "{{ 'ON' }}",
-                "unique_id": f"metermon_{meter_id}_{meter_type}_consumption_config",
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status", # Uses metermon-ha
+                "unique_id": f"metermon_{meter_id}_{meter_type}_consumption_config", # CORRECTED ID
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
                 "payload_available": "Online",
                 "payload_not_available": "Offline",
                 "device_class": "connectivity"
