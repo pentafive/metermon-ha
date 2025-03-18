@@ -9,10 +9,10 @@ import paho.mqtt.client as mqtt
 # read in needed env variables
 MQTT_BROKER_HOST  = os.getenv('MQTT_BROKER_HOST',"127.0.0.1")
 MQTT_BROKER_PORT  = int(os.getenv('MQTT_BROKER_PORT',1883))
-MQTT_CLIENT_ID    = os.getenv('MQTT_CLIENT_ID',"metermon")
+MQTT_CLIENT_ID    = os.getenv('MQTT_CLIENT_ID',"metermon")  # Still 'metermon' to avoid confusion
 MQTT_USERNAME      = os.getenv('MQTT_USERNAME',"")
 MQTT_PASSWORD      = os.getenv('MQTT_PASSWORD',"")
-MQTT_TOPIC_PREFIX = os.getenv('MQTT_TOPIC_PREFIX',"metermon")  # Still used for availability
+MQTT_TOPIC_PREFIX = os.getenv('MQTT_TOPIC_PREFIX',"metermon-ha")  # CHANGED TO metermon-ha
 RTL_TCP_SERVER    = os.getenv('RTL_TCP_SERVER',"127.0.0.1:1234")
 RTLAMR_MSGTYPE    = os.getenv('RTLAMR_MSGTYPE',"all")
 RTLAMR_FILTERID   = os.getenv('RTLAMR_FILTERID',"") # Optional filter ID
@@ -197,7 +197,7 @@ while True:
                 },
                 "state_class": "total_increasing",
                 "device_class": msg['Type'].lower() if msg['Type'].lower() in ['water', 'gas', 'electric'] else None,
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status", # Now uses metermon-ha
                 "payload_available": "Online",
                 "payload_not_available": "Offline"
             })
@@ -217,7 +217,7 @@ while True:
                     "manufacturer": "Metermon"
                 },
                 "device_class": "problem",
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",  # Now uses metermon-ha
                 "payload_available": "Online",
                 "payload_not_available": "Offline"
             })
@@ -230,7 +230,7 @@ while True:
                 "state_topic": f"homeassistant/binary_sensor/metermon_{meter_id}/{meter_type}_consumption_config/state",
                 "value_template": "{{ 'ON' }}",
                 "unique_id": f"metermon_{meter_id}_{meter_type}_consumption_config",
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status", # Now uses metermon-ha
                 "payload_available": "Online",
                 "payload_not_available": "Offline",
                 "device_class": "connectivity"
