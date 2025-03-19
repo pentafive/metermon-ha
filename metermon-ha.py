@@ -9,10 +9,10 @@ import paho.mqtt.client as mqtt
 # read in needed env variables
 MQTT_BROKER_HOST  = os.getenv('MQTT_BROKER_HOST',"127.0.0.1")
 MQTT_BROKER_PORT  = int(os.getenv('MQTT_BROKER_PORT',1883))
-MQTT_CLIENT_ID    = os.getenv('MQTT_CLIENT_ID',"metermon-ha")
+MQTT_CLIENT_ID    = os.getenv('MQTT_CLIENT_ID',"metermon-ha")  # Use -ha client ID
 MQTT_USERNAME      = os.getenv('MQTT_USERNAME',"")
 MQTT_PASSWORD      = os.getenv('MQTT_PASSWORD',"")
-MQTT_TOPIC_PREFIX = os.getenv('MQTT_TOPIC_PREFIX',"metermon-ha")
+MQTT_TOPIC_PREFIX = os.getenv('MQTT_TOPIC_PREFIX',"metermon-ha")  # Use -ha prefix
 RTL_TCP_SERVER    = os.getenv('RTL_TCP_SERVER',"127.0.0.1:1234")
 RTLAMR_MSGTYPE    = os.getenv('RTLAMR_MSGTYPE',"all")
 RTLAMR_FILTERID   = os.getenv('RTLAMR_FILTERID',"") # Optional filter ID
@@ -90,7 +90,7 @@ while True:
     if not line:
         break
     try:
-        data = json.loads(line)
+        data = json.loads(line) # We can use json.loads directly.
     except json.JSONDecodeError:
         print(f"Error decoding JSON: {line}")
         continue
@@ -102,7 +102,7 @@ while True:
         "ID": "Unknown",
         "Consumption": 0,
         "Unit": "Unknown",
-        "LeakNow": "None"
+        "LeakNow": "None"  # Initialize LeakNow to a default value
     }
 
     # set Protocol
@@ -114,7 +114,7 @@ while True:
         msg['ID'] = str(data['Message']['ID'])
         if data['Message']['Type'] in (4, 5, 7, 8):  # electric meter
             msg['Type'] = "Electric"
-            msg['Consumption'] = data['Message']['Consumption'] / METERMON_ELECTRIC_DIVISOR
+            msg['Consumption'] = data['Message']['Consumption'] / METERMON_ELECTRIC_DIVISOR  # convert to kWh
             msg['Unit'] = "kWh"
         elif data['Message']['Type'] in (2, 9, 12):  # gas meter
             msg['Type'] = "Gas"
@@ -122,14 +122,14 @@ while True:
             msg['Unit'] = "ft^3"
         elif data['Message']['Type'] in (3, 11, 13):  # water meter
             msg['Type'] = "Water"
-            msg['Consumption'] = data['Message']['Consumption'] / METERMON_WATER_DIVISOR
+            msg['Consumption'] = data['Message']['Consumption'] / METERMON_WATER_DIVISOR  # convert to gal
             msg['Unit'] = "gal"
     # SCM+ messages
     elif msg['Protocol'] == "SCM+":
         msg['ID'] = str(data['Message']['EndpointID'])
         if data['Message']['EndpointType'] in (4, 5, 7, 8, 110):  # electric meter
             msg['Type'] = "Electric"
-            msg['Consumption'] = data['Message']['Consumption'] / METERMON_ELECTRIC_DIVISOR
+            msg['Consumption'] = data['Message']['Consumption'] / METERMON_ELECTRIC_DIVISOR  # convert to kWh
             msg['Unit'] = "kWh"
         elif data['Message']['EndpointType'] in (2, 9, 12, 156, 188, 220):  # gas meter
             msg['Type'] = "Gas"
@@ -137,27 +137,28 @@ while True:
             msg['Unit'] = "ft^3"
         elif data['Message']['EndpointType'] in (3, 11, 13, 27, 171):  # water meter
             msg['Type'] = "Water"
-            msg['Consumption'] = data['Message']['Consumption'] / METERMON_WATER_DIVISOR
+            msg['Consumption'] = data['Message']['Consumption'] / METERMON_WATER_DIVISOR  # convert to gal
             msg['Unit'] = "gal"
+            # Extract 'Leak' and 'LeakNow' if present, otherwise default to 'None'
             msg['LeakNow'] = "None" if data['Message'].get('Leak') is None else "Leak"
 
     # IDM messages
     elif msg['Protocol'] == "IDM":
         msg['Type'] = "Electric"
         msg['ID'] = str(data['Message']['ERTSerialNumber'])
-        msg['Consumption'] = data['Message']['LastConsumptionCount'] / METERMON_ELECTRIC_DIVISOR
+        msg['Consumption'] = data['Message']['LastConsumptionCount'] / METERMON_ELECTRIC_DIVISOR  # convert to kWh
         msg['Unit'] = "kWh"
     # NetIDM messages
     elif msg['Protocol'] == "NetIDM":
         msg['Type'] = "Electric"
         msg['ID'] = str(data['Message']['ERTSerialNumber'])
-        msg['Consumption'] = data['Message']['LastConsumptionNet'] / METERMON_ELECTRIC_DIVISOR
+        msg['Consumption'] = data['Message']['LastConsumptionNet'] / METERMON_ELECTRIC_DIVISOR  # convert to kWh
         msg['Unit'] = "kWh"
     # R900 messages
     elif msg['Protocol'] == "R900":
         msg['Type'] = "Water"
         msg['ID'] = str(data['Message']['ID'])
-        msg['Consumption'] = data['Message']['Consumption'] / METERMON_WATER_DIVISOR
+        msg['Consumption'] = data['Message']['Consumption'] / METERMON_WATER_DIVISOR  # convert to gal
         msg['Unit'] = "gal"
         for attr, kind in R900_ATTRIBS.items():
             value = data['Message'].get(attr)
@@ -171,7 +172,7 @@ while True:
     elif msg['Protocol'] == "R900BCD":
         msg['Type'] = "Water"
         msg['ID'] = str(data['Message']['ID'])
-        msg['Consumption'] = data['Message']['Consumption'] / METERMON_WATER_DIVISOR
+        msg['Consumption'] = data['Message']['Consumption'] / METERMON_WATER_DIVISOR  # convert to gal
         msg['Unit'] = "gal"
 
     # filter out cases where consumption value is negative
@@ -206,7 +207,7 @@ while True:
             leak_config_topic = f"homeassistant/binary_sensor/metermon-ha/{meter_id}/leak/config"
             leak_config_payload = json.dumps({
                 "name": f"{meter_id} Leak",
-                "state_topic": f"homeassistant/binary_sensor/metermon-ha/{meter_id}/leak/state",
+                "state_topic": f"homeassistant/binary_sensor/metermon-ha_{meter_id}/leak/state", #CORRECTED
                 "value_template": "{{ 'ON' if value_json.leak_now != 'None' else 'OFF' }}",
                 "unique_id": f"metermon-ha_{meter_id}_leak",
                 "device": {
@@ -236,7 +237,7 @@ while True:
             })
             client.publish(config_config_topic, config_config_payload, retain=True)
             #Publish state to config
-            config_state_topic = f"homeassistant/binary_sensor/metermon-ha/{meter_id}/{meter_type}_consumption_config/state"
+            config_state_topic = f"homeassistant/binary_sensor/metermon-ha_{meter_id}/{meter_type}_consumption_config/state"
             client.publish(config_state_topic, payload="ON", retain=False)
             configured_meters[meter_key] = True
             print(f"Configured sensors for meter: {meter_key}")
@@ -244,14 +245,15 @@ while True:
 
         # --- Publish State Message for Consumption Sensor ---
         consumption_state_topic = f"homeassistant/sensor/metermon-ha/{meter_id}/{meter_type}_consumption/state"
-        client.publish(consumption_state_topic, payload=str(msg['Consumption']), retain=False)
+        client.publish(consumption_state_topic, payload=str(msg['Consumption']), retain=False) # Just the value!
 
         # --- Publish State Message for Leak Sensor ---
-        leak_state_topic = f"homeassistant/binary_sensor/metermon-ha/{meter_id}/leak/state"
+        leak_state_topic = f"homeassistant/binary_sensor/metermon-ha/{meter_id}/leak/state"  #  <-- CORRECTED!
         leak_state_payload = json.dumps({
             "consumption": msg['Consumption'],
-            "leak_now": msg.get("LeakNow", "None")
+            "leak_now": msg.get("LeakNow", "None")  # Use .get() for safety
         })
         client.publish(leak_state_topic, leak_state_payload, retain=False)
+
 
         print(f"Published state update for meter: {meter_key}")
