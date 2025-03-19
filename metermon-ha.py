@@ -182,12 +182,12 @@ while True:
 
         if meter_key not in configured_meters:
             # --- Create Consumption Sensor (Configuration Message) ---
-            consumption_config_topic = f"homeassistant/sensor/{meter_id}/{meter_type}_consumption/config"  # CORRECTED
+            consumption_config_topic = f"homeassistant/sensor/{meter_id}/{meter_type}_consumption/config"
             consumption_config_payload = json.dumps({
-                "name": f"{meter_id} {meter_type.capitalize()} Consumption",
-                "state_topic": f"homeassistant/sensor/{meter_id}/{meter_type}_consumption/state",  # CORRECTED
+                "name": f"{meter_type.capitalize()} Consumption",  # CORRECTED: Generic name
+                "state_topic": f"homeassistant/sensor/{meter_id}/{meter_type}_consumption/state",
                 "unit_of_measurement": msg['Unit'],
-                "unique_id": f"metermon-ha_{meter_id}_{meter_type}_consumption",
+                "unique_id": f"metermon-ha_{meter_id}_{meter_type}_consumption", # Correct unique ID
                 "device": {
                     "identifiers": [f"metermon-ha_{meter_id}"],
                     "name": f"Metermon-HA {meter_id}",
@@ -196,19 +196,19 @@ while True:
                 },
                 "state_class": "total_increasing",
                 "device_class": msg['Type'].lower() if msg['Type'].lower() in ['water', 'gas', 'electric'] else None,
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",  # Use the prefix
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
                 "payload_available": "Online",
                 "payload_not_available": "Offline"
             })
             client.publish(consumption_config_topic, consumption_config_payload, retain=True)
 
             # --- Create Leak Binary Sensor (Configuration Message) ---
-            leak_config_topic = f"homeassistant/binary_sensor/{meter_id}/leak/config"  # CORRECTED
+            leak_config_topic = f"homeassistant/binary_sensor/{meter_id}/leak/config"
             leak_config_payload = json.dumps({
-                "name": f"{meter_id} Leak",
-                "state_topic": f"homeassistant/binary_sensor/{meter_id}/leak/state",  # CORRECTED
+                "name": "Leak",  # CORRECTED: Generic name
+                "state_topic": f"homeassistant/binary_sensor/{meter_id}/leak/state",
                 "value_template": "{{ 'ON' if value_json.leak_now != 'None' else 'OFF' }}",
-                "unique_id": f"metermon-ha_{meter_id}_leak",
+                "unique_id": f"metermon-ha_{meter_id}_leak", # Correct unique ID
                 "device": {
                     "identifiers": [f"metermon-ha_{meter_id}"],
                     "name": f"Metermon-HA {meter_id}",
@@ -216,18 +216,19 @@ while True:
                     "manufacturer": "Metermon"
                 },
                 "device_class": "problem",
-                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",  # Use the prefix
+                "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
                 "payload_available": "Online",
                 "payload_not_available": "Offline"
             })
             client.publish(leak_config_topic, leak_config_payload, retain=True)
-          # --- Create Config Check Binary Sensor (Configuration Message) --- #
-            config_config_topic = f"homeassistant/binary_sensor/{meter_id}/{meter_type}_consumption_config/config" # CORRECTED
+
+            # --- Create Config Check Binary Sensor (Configuration Message) --- #
+            config_config_topic = f"homeassistant/binary_sensor/{meter_id}/{meter_type}_consumption_config/config"
             config_config_payload = json.dumps({
-                "name": f"Metermon-HA {meter_id} {meter_type.capitalize()} Config",
-                "state_topic": f"homeassistant/binary_sensor/{meter_id}/{meter_type}_consumption_config/state", # CORRECTED
+                "name": f"{meter_type.capitalize()} Config",  #CORRECTED: Generic Name
+                "state_topic": f"homeassistant/binary_sensor/{meter_id}/{meter_type}_consumption_config/state",
                 "value_template": "{{ 'ON' }}",
-                "unique_id": f"metermon-ha_{meter_id}_{meter_type}_consumption_config",
+                "unique_id": f"metermon-ha_{meter_id}_{meter_type}_consumption_config", # Correct unique ID
                 "availability_topic": f"{MQTT_TOPIC_PREFIX}/status",
                 "payload_available": "Online",
                 "payload_not_available": "Offline",
@@ -235,17 +236,17 @@ while True:
             })
             client.publish(config_config_topic, config_config_payload, retain=True)
             #Publish state to config
-            config_state_topic = f"homeassistant/binary_sensor/{meter_id}/{meter_type}_consumption_config/state"  # CORRECTED
+            config_state_topic = f"homeassistant/binary_sensor/{meter_id}/{meter_type}_consumption_config/state"
             client.publish(config_state_topic, payload="ON", retain=False)
             configured_meters[meter_key] = True
             print(f"Configured sensors for meter: {meter_key}")
 
         # --- Publish State Message for Consumption Sensor ---
-        consumption_state_topic = f"homeassistant/sensor/{meter_id}/{meter_type}_consumption/state"  # CORRECTED
+        consumption_state_topic = f"homeassistant/sensor/{meter_id}/{meter_type}_consumption/state"
         client.publish(consumption_state_topic, payload=str(msg['Consumption']), retain=False)
 
         # --- Publish State Message for Leak Sensor ---
-        leak_state_topic = f"homeassistant/binary_sensor/{meter_id}/leak/state"  # CORRECTED
+        leak_state_topic = f"homeassistant/binary_sensor/{meter_id}/leak/state"
         leak_state_payload = json.dumps({
             "consumption": msg['Consumption'],
             "leak_now": msg.get("LeakNow", "None")
